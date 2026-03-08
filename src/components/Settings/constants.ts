@@ -8,6 +8,7 @@ import {
   Monitor,
   Terminal,
   Twitter,
+  Cloud,
 } from 'lucide-react';
 import { SlackIcon } from './SlackIcon';
 import { JiraIcon } from './JiraIcon';
@@ -26,6 +27,7 @@ export const SECTIONS: { id: SettingsSection; label: string; icon: React.Compone
   { id: 'jira', label: 'JIRA', icon: JiraIcon },
   { id: 'socialdata', label: 'X (Twitter)', icon: Twitter },
   { id: 'tasmania', label: 'Tasmania', icon: TasmaniaIcon },
+  { id: 'google-workspace', label: 'Google Workspace', icon: Cloud },
   { id: 'permissions', label: 'Permissions', icon: Shield },
   { id: 'skills', label: 'Skills & Plugins', icon: Sparkles },
   { id: 'cli', label: 'CLI Paths', icon: Terminal },
@@ -61,6 +63,8 @@ export const DEFAULT_APP_SETTINGS = {
   xAccessTokenSecret: '',
   tasmaniaEnabled: false,
   tasmaniaServerPath: '',
+  gwsEnabled: false,
+  gwsSkillsInstalled: false,
   verboseModeEnabled: false,
   autoCheckUpdates: true,
   defaultProvider: 'claude',
@@ -71,6 +75,8 @@ export const DEFAULT_APP_SETTINGS = {
     claude: '',
     codex: '',
     gemini: '',
+    gws: '',
+    gcloud: '',
     gh: '',
     node: '',
     additionalPaths: [],

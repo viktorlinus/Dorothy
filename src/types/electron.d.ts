@@ -298,6 +298,10 @@ export interface ElectronAPI {
       terminalTheme?: 'dark' | 'light';
       cliPaths?: {
         claude: string;
+        codex: string;
+        gemini: string;
+        gws: string;
+        gcloud: string;
         gh: string;
         node: string;
         additionalPaths: string[];
@@ -332,6 +336,10 @@ export interface ElectronAPI {
       terminalTheme?: 'dark' | 'light';
       cliPaths?: {
         claude: string;
+        codex: string;
+        gemini: string;
+        gws: string;
+        gcloud: string;
         gh: string;
         node: string;
         additionalPaths: string[];
@@ -367,6 +375,24 @@ export interface ElectronAPI {
   // X API (posting)
   xApi?: {
     test: () => Promise<{ success: boolean; username?: string; error?: string }>;
+  };
+
+  // Google Workspace (gws CLI)
+  gws?: {
+    detect: () => Promise<string>;
+    detectGcloud: () => Promise<string>;
+    authStatus: () => Promise<{
+      authenticated: boolean;
+      user: string | null;
+      tokenValid: boolean;
+      scopes: string[];
+      authMethod: string;
+      services: Record<string, 'none' | 'read' | 'write'>;
+    }>;
+    setup: () => Promise<{ success: boolean; error?: string }>;
+    remove: () => Promise<{ success: boolean; error?: string }>;
+    getMcpStatus: () => Promise<{ configured: boolean; error?: string }>;
+    listSkills: () => Promise<string[]>;
   };
 
   // Tasmania (Local LLM)
@@ -561,6 +587,8 @@ export interface ElectronAPI {
       claude: string;
       codex: string;
       gemini: string;
+      gws: string;
+      gcloud: string;
       gh: string;
       node: string;
     }>;
@@ -568,6 +596,8 @@ export interface ElectronAPI {
       claude: string;
       codex: string;
       gemini: string;
+      gws: string;
+      gcloud: string;
       gh: string;
       node: string;
       additionalPaths: string[];
@@ -576,6 +606,8 @@ export interface ElectronAPI {
       claude: string;
       codex: string;
       gemini: string;
+      gws: string;
+      gcloud: string;
       gh: string;
       node: string;
       additionalPaths: string[];

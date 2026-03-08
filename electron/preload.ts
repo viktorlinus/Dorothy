@@ -258,6 +258,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('xapi:test') as Promise<{ success: boolean; username?: string; error?: string }>,
   },
 
+  // Google Workspace (gws CLI)
+  gws: {
+    detect: () =>
+      ipcRenderer.invoke('gws:detect'),
+    detectGcloud: () =>
+      ipcRenderer.invoke('gws:detectGcloud'),
+    authStatus: () =>
+      ipcRenderer.invoke('gws:authStatus'),
+    setup: () =>
+      ipcRenderer.invoke('gws:setup'),
+    remove: () =>
+      ipcRenderer.invoke('gws:remove'),
+    getMcpStatus: () =>
+      ipcRenderer.invoke('gws:getMcpStatus'),
+    listSkills: () =>
+      ipcRenderer.invoke('gws:listSkills') as Promise<string[]>,
+  },
+
   // Tasmania (Local LLM)
   tasmania: {
     test: () =>

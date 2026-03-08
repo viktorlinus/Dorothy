@@ -18,6 +18,7 @@ import {
   JiraSection,
   SocialDataSection,
   TasmaniaSection,
+  GoogleWorkspaceSection,
   PermissionsSection,
   SkillsSection,
   CLIPathsSection,
@@ -118,6 +119,14 @@ function SettingsPageInner() {
       case 'tasmania':
         return (
           <TasmaniaSection
+            appSettings={appSettings}
+            onSaveAppSettings={handleSaveAppSettings}
+            onUpdateLocalSettings={updateLocalAppSettings}
+          />
+        );
+      case 'google-workspace':
+        return (
+          <GoogleWorkspaceSection
             appSettings={appSettings}
             onSaveAppSettings={handleSaveAppSettings}
             onUpdateLocalSettings={updateLocalAppSettings}

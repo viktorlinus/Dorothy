@@ -20,7 +20,7 @@ import {
 import { useClaude } from '@/hooks/useClaude';
 import { useElectronSkills } from '@/hooks/useElectron';
 import { SKILLS_DATABASE, type Skill } from '@/lib/skills-database';
-import SkillInstallDialog from '@/components/SkillInstallDialog';
+import TerminalDialog from '@/components/TerminalDialog';
 import ProviderBadge from '@/components/ProviderBadge';
 
 const COL_STYLES = {
@@ -487,7 +487,7 @@ export default function SkillsPage() {
 
 
       {/* Installation Terminal Modal */}
-      <SkillInstallDialog
+      <TerminalDialog
         open={showInstallTerminal}
         repo={currentInstallRepo}
         title={currentInstallTitle}

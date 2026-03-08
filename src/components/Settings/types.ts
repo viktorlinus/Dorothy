@@ -28,6 +28,8 @@ export interface CLIPaths {
   claude: string;
   codex: string;
   gemini: string;
+  gws: string;
+  gcloud: string;
   gh: string;
   node: string;
   additionalPaths: string[];
@@ -62,6 +64,8 @@ export interface AppSettings {
   xAccessTokenSecret: string;
   tasmaniaEnabled: boolean;
   tasmaniaServerPath: string;
+  gwsEnabled: boolean;
+  gwsSkillsInstalled: boolean;
   verboseModeEnabled: boolean;
   autoCheckUpdates: boolean;
   cliPaths: CLIPaths;
@@ -71,4 +75,4 @@ export interface AppSettings {
   terminalTheme?: 'dark' | 'light';
 }
 
-export type SettingsSection = 'general' | 'terminal' | 'git' | 'notifications' | 'telegram' | 'slack' | 'jira' | 'socialdata' | 'tasmania' | 'obsidian' | 'permissions' | 'skills' | 'cli' | 'system';
+export type SettingsSection = 'general' | 'terminal' | 'git' | 'notifications' | 'telegram' | 'slack' | 'jira' | 'socialdata' | 'tasmania' | 'google-workspace' | 'obsidian' | 'permissions' | 'skills' | 'cli' | 'system';

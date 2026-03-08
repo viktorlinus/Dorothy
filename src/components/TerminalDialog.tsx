@@ -6,15 +6,19 @@ import { isElectron } from '@/hooks/useElectron';
 import ProviderBadge, { PROVIDER_CONFIG } from '@/components/ProviderBadge';
 import 'xterm/css/xterm.css';
 
-interface SkillInstallDialogProps {
+interface TerminalDialogProps {
   open: boolean;
   repo: string;
   title: string;
   onClose: (success?: boolean) => void;
   availableProviders?: string[];
+  /** When set, runs this shell command via plugin:install-start instead of skill:install-start */
+  command?: string;
 }
 
-export default function SkillInstallDialog({ open, repo, title, onClose, availableProviders = ['claude'] }: SkillInstallDialogProps) {
+export default function TerminalDialog({ open, repo, title, onClose, availableProviders = ['claude'], command }: TerminalDialogProps) {
+  // command mode uses plugin.* APIs, skill mode uses skill.* APIs
+  const isCommandMode = !!command;
   const [installComplete, setInstallComplete] = useState(false);
   const [installExitCode, setInstallExitCode] = useState<number | null>(null);
   const [terminalReady, setTerminalReady] = useState(false);
@@ -85,20 +89,23 @@ export default function SkillInstallDialog({ open, repo, title, onClose, availab
       term.onData((data) => {
         const cleaned = data.replace(/\x1b\[(?:I|O)/g, '');
         if (!cleaned) return;
-        if (ptyIdRef.current && window.electronAPI?.skill?.installWrite) {
-          window.electronAPI.skill.installWrite({ id: ptyIdRef.current, data: cleaned });
+        if (!ptyIdRef.current) return;
+        if (isCommandMode) {
+          window.electronAPI?.plugin?.installWrite({ id: ptyIdRef.current, data: cleaned });
+        } else {
+          window.electronAPI?.skill?.installWrite({ id: ptyIdRef.current, data: cleaned });
         }
       });
 
       // Handle resize
       const resizeObserver = new ResizeObserver(() => {
         fitAddon.fit();
-        if (ptyIdRef.current && window.electronAPI?.skill?.installResize) {
-          window.electronAPI.skill.installResize({
-            id: ptyIdRef.current,
-            cols: term.cols,
-            rows: term.rows,
-          });
+        if (!ptyIdRef.current) return;
+        const dims = { id: ptyIdRef.current, cols: term.cols, rows: term.rows };
+        if (isCommandMode) {
+          window.electronAPI?.plugin?.installResize(dims);
+        } else {
+          window.electronAPI?.skill?.installResize(dims);
         }
       });
       resizeObserver.observe(terminalRef.current!);
@@ -111,8 +118,12 @@ export default function SkillInstallDialog({ open, repo, title, onClose, availab
 
     return () => {
       // Kill PTY process to prevent zombie processes
-      if (ptyIdRef.current && window.electronAPI?.skill?.installKill) {
-        window.electronAPI.skill.installKill({ id: ptyIdRef.current });
+      if (ptyIdRef.current) {
+        if (isCommandMode) {
+          window.electronAPI?.plugin?.installKill({ id: ptyIdRef.current });
+        } else {
+          window.electronAPI?.skill?.installKill({ id: ptyIdRef.current });
+        }
         ptyIdRef.current = null;
       }
       if (xtermRef.current) {
@@ -125,54 +136,88 @@ export default function SkillInstallDialog({ open, repo, title, onClose, availab
 
   // Start PTY only after terminal is ready
   useEffect(() => {
-    if (!terminalReady || !repo || !window.electronAPI?.skill?.installStart) return;
+    if (!terminalReady) return;
 
-    const startPty = async () => {
-      try {
-        const result = await window.electronAPI!.skill.installStart({ repo });
-        ptyIdRef.current = result.id;
-      } catch (err) {
-        xtermRef.current?.writeln(
-          `Failed to start installation: ${err instanceof Error ? err.message : 'Unknown error'}`
-        );
-        setInstallComplete(true);
-        setInstallExitCode(1);
-      }
-    };
+    if (isCommandMode) {
+      if (!command || !window.electronAPI?.plugin?.installStart) return;
+      const startPty = async () => {
+        try {
+          const term = xtermRef.current;
+          const result = await window.electronAPI!.plugin!.installStart({
+            command: command!,
+            cols: term?.cols,
+            rows: term?.rows,
+          });
+          if (result) ptyIdRef.current = result.id;
+        } catch (err) {
+          xtermRef.current?.writeln(
+            `Failed to start: ${err instanceof Error ? err.message : 'Unknown error'}`
+          );
+          setInstallComplete(true);
+          setInstallExitCode(1);
+        }
+      };
+      startPty();
+    } else {
+      if (!repo || !window.electronAPI?.skill?.installStart) return;
+      const startPty = async () => {
+        try {
+          const result = await window.electronAPI!.skill.installStart({ repo });
+          ptyIdRef.current = result.id;
+        } catch (err) {
+          xtermRef.current?.writeln(
+            `Failed to start installation: ${err instanceof Error ? err.message : 'Unknown error'}`
+          );
+          setInstallComplete(true);
+          setInstallExitCode(1);
+        }
+      };
+      startPty();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [terminalReady, repo, command]);
 
-    startPty();
-  }, [terminalReady, repo]);
-
-  // Listen for PTY data
+  // Listen for PTY data on both channels — ID filtering ensures correctness
   useEffect(() => {
-    if (!isElectron() || !window.electronAPI?.skill?.onPtyData) return;
+    if (!isElectron()) return;
 
-    const unsubscribe = window.electronAPI.skill.onPtyData(({ id, data }) => {
+    const handler = ({ id, data }: { id: string; data: string }) => {
       if (id === ptyIdRef.current && xtermRef.current) {
         xtermRef.current.write(data);
       }
-    });
+    };
 
-    return unsubscribe;
+    const unsub1 = window.electronAPI?.plugin?.onPtyData(handler);
+    const unsub2 = window.electronAPI?.skill?.onPtyData(handler);
+
+    return () => { unsub1?.(); unsub2?.(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Listen for PTY exit — link to additional providers on success
-  useEffect(() => {
-    if (!isElectron() || !window.electronAPI?.skill?.onPtyExit) return;
+  // Track command mode in a ref so the exit handler always has the current value
+  const isCommandModeRef = useRef(isCommandMode);
+  isCommandModeRef.current = isCommandMode;
 
-    const unsubscribe = window.electronAPI.skill.onPtyExit(({ id, exitCode }) => {
+  // Listen for PTY exit on both channels
+  useEffect(() => {
+    if (!isElectron()) return;
+
+    const handler = ({ id, exitCode }: { id: string; exitCode: number }) => {
       if (id === ptyIdRef.current) {
         setInstallComplete(true);
         setInstallExitCode(exitCode);
 
-        // On success, symlink to additional providers
-        if (exitCode === 0) {
+        // On success, symlink to additional providers (skill mode only)
+        if (exitCode === 0 && !isCommandModeRef.current) {
           linkToAdditionalProviders();
         }
       }
-    });
+    };
 
-    return unsubscribe;
+    const unsub1 = window.electronAPI?.plugin?.onPtyExit(handler);
+    const unsub2 = window.electronAPI?.skill?.onPtyExit(handler);
+
+    return () => { unsub1?.(); unsub2?.(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -207,7 +252,11 @@ export default function SkillInstallDialog({ open, repo, title, onClose, availab
 
   const handleClose = () => {
     if (ptyIdRef.current && !installComplete) {
-      window.electronAPI?.skill?.installKill({ id: ptyIdRef.current });
+      if (isCommandMode) {
+        window.electronAPI?.plugin?.installKill({ id: ptyIdRef.current });
+      } else {
+        window.electronAPI?.skill?.installKill({ id: ptyIdRef.current });
+      }
     }
     ptyIdRef.current = null;
     if (xtermRef.current) {
@@ -260,9 +309,9 @@ export default function SkillInstallDialog({ open, repo, title, onClose, availab
                       ? installExitCode === 0
                         ? 'Installation Complete'
                         : 'Installation Failed'
-                      : 'Installing Skill...'}
+                      : title || 'Installing...'}
                   </h3>
-                  <p className="text-xs text-muted-foreground font-mono">{repo}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{command || repo}</p>
                 </div>
               </div>
               <button
@@ -273,8 +322,8 @@ export default function SkillInstallDialog({ open, repo, title, onClose, availab
               </button>
             </div>
 
-            {/* Provider Selector */}
-            {nonClaudeProviders.length > 0 && (
+            {/* Provider Selector — skill mode only */}
+            {!isCommandMode && nonClaudeProviders.length > 0 && (
               <div className="px-5 py-3 border-b border-border flex items-center gap-3">
                 <span className="text-xs text-muted-foreground">Install to:</span>
                 {availableProviders.map(id => {

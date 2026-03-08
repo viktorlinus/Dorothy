@@ -23,7 +23,7 @@ import type { ImportPreview } from '@/types/electron';
 import type { GenerativeZone } from '@/types/world';
 import { useWorldZones } from '@/hooks/useWorldZones';
 import AgentTerminalDialog from '@/components/AgentWorld/AgentTerminalDialog';
-import SkillInstallDialog from '@/components/SkillInstallDialog';
+import TerminalDialog from '@/components/TerminalDialog';
 import PluginInstallDialog from '@/components/PluginInstallDialog';
 import { useClaude } from '@/hooks/useClaude';
 import { useElectronSkills } from '@/hooks/useElectron';
@@ -965,7 +965,7 @@ export default function PokemonGame() {
       />
 
       {/* Skill Install Dialog — same as skills/page.tsx */}
-      <SkillInstallDialog
+      <TerminalDialog
         open={!!skillInstallRepo}
         repo={skillInstallRepo || ''}
         title={skillInstallTitle}

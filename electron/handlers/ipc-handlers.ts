@@ -2,6 +2,7 @@ import { ipcMain, dialog, shell } from 'electron';
 import { checkForUpdates, downloadUpdate, quitAndInstall } from '../services/update-checker';
 import { registerMemoryHandlers } from './memory-handlers';
 import { registerObsidianHandlers } from './obsidian-handlers';
+import { registerGwsHandlers } from './gws-handlers';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -71,6 +72,7 @@ export function registerIpcHandlers(deps: IpcHandlerDependencies): void {
   registerShellHandlers(deps);
   registerMemoryHandlers();
   registerObsidianHandlers({ getAppSettings: deps.getAppSettings, setAppSettings: deps.setAppSettings, saveAppSettings: deps.saveAppSettings });
+  registerGwsHandlers({ getAppSettings: deps.getAppSettings, setAppSettings: deps.setAppSettings, saveAppSettings: deps.saveAppSettings });
   registerApiTokenHandler();
 }
 
@@ -245,7 +247,7 @@ function registerAgentHandlers(deps: IpcHandlerDependencies): void {
     const currentSettings = getAppSettings();
     const cliExtraPaths: string[] = [];
     if (currentSettings.cliPaths) {
-      for (const key of ['claude', 'codex', 'gemini', 'gh', 'node'] as const) {
+      for (const key of ['claude', 'codex', 'gemini', 'gws', 'gh', 'node'] as const) {
         const val = (currentSettings.cliPaths as unknown as Record<string, string>)[key];
         if (val) cliExtraPaths.push(path.dirname(val));
       }
@@ -425,7 +427,7 @@ function registerAgentHandlers(deps: IpcHandlerDependencies): void {
       const currentSettings = getAppSettings();
       const extraPaths: string[] = [];
       if (currentSettings.cliPaths) {
-        for (const key of ['claude', 'codex', 'gemini', 'gh', 'node'] as const) {
+        for (const key of ['claude', 'codex', 'gemini', 'gws', 'gh', 'node'] as const) {
           const val = (currentSettings.cliPaths as unknown as Record<string, string>)[key];
           if (val) extraPaths.push(path.dirname(val));
         }

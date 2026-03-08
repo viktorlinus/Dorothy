@@ -111,10 +111,12 @@ describe('scheduler-handlers', () => {
         xAccessTokenSecret: '',
         tasmaniaEnabled: false,
         tasmaniaServerPath: '',
+        gwsEnabled: false,
+        gwsSkillsInstalled: false,
         verboseModeEnabled: false,
         autoCheckUpdates: true,
         defaultProvider: 'claude' as const,
-        cliPaths: { claude: '', codex: '', gemini: '', gh: '', node: '', additionalPaths: [] },
+        cliPaths: { claude: '', codex: '', gemini: '', gws: '', gcloud: '', gh: '', node: '', additionalPaths: [] },
       }),
     });
   }

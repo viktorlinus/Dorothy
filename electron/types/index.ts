@@ -35,6 +35,8 @@ export interface CLIPaths {
   claude: string;
   codex: string;
   gemini: string;
+  gws: string;
+  gcloud: string;
   gh: string;
   node: string;
   additionalPaths: string[];
@@ -69,6 +71,8 @@ export interface AppSettings {
   xAccessTokenSecret: string;
   tasmaniaEnabled: boolean;
   tasmaniaServerPath: string;
+  gwsEnabled: boolean;
+  gwsSkillsInstalled: boolean;
   verboseModeEnabled: boolean;
   autoCheckUpdates: boolean;
   cliPaths: CLIPaths;
