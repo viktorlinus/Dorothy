@@ -3,6 +3,22 @@ import { Settings, RefreshCw, Download, ExternalLink, CheckCircle, AlertCircle, 
 import { Toggle } from './Toggle';
 import type { ClaudeInfo, AppSettings } from './types';
 
+/** Strip HTML tags and collapse whitespace so release notes render as plain text. */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(?:p|li|h[1-6]|div|tr)>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '- ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 interface UpdateInfo {
   currentVersion: string;
   latestVersion: string;
@@ -213,7 +229,7 @@ export const GeneralSection = ({ info, appSettings, onSaveAppSettings }: General
                 <div className="mt-3 pt-3 border-t border-blue-500/20">
                   <p className="text-xs text-muted-foreground mb-1">Release notes:</p>
                   <p className="text-xs text-foreground/80 whitespace-pre-wrap line-clamp-4">
-                    {updateInfo.releaseNotes.slice(0, 300)}
+                    {stripHtml(updateInfo.releaseNotes).slice(0, 300)}
                     {updateInfo.releaseNotes.length > 300 ? '...' : ''}
                   </p>
                 </div>

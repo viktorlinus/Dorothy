@@ -852,6 +852,37 @@ function registerSkillHandlers(deps: IpcHandlerDependencies): void {
     return { success: false, error: 'PTY not found' };
   });
 
+  // Fetch skills marketplace from skills.sh (server-side to avoid CORS)
+  ipcMain.handle('skill:fetch-marketplace', async () => {
+    try {
+      const res = await fetch('https://skills.sh/', {
+        headers: { 'User-Agent': 'Dorothy/1.0' },
+      });
+      if (!res.ok) return { skills: null };
+
+      const html = await res.text();
+      const match = html.match(/initialSkills.*?(\[\{.*?\}\])/);
+      if (!match) return { skills: null };
+
+      const raw = match[1].replace(/\\"/g, '"');
+      const allSkills: { source: string; name: string; installs: number }[] = JSON.parse(raw);
+
+      const skills = allSkills.slice(0, 300).map((s, i) => ({
+        rank: i + 1,
+        name: s.name,
+        repo: s.source,
+        installs: s.installs >= 1000
+          ? `${(s.installs / 1000).toFixed(1).replace(/\.0$/, '')}K`
+          : String(s.installs),
+        installsNum: s.installs,
+      }));
+
+      return { skills };
+    } catch {
+      return { skills: null };
+    }
+  });
+
   // Legacy install (kept for backwards compatibility)
   ipcMain.handle('skill:install', async (_event, repo: string) => {
     // Just start the installation and return immediately

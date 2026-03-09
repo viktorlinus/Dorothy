@@ -15,6 +15,7 @@ import { randomUUID } from "crypto";
 // Data file path
 const DATA_DIR = path.join(os.homedir(), ".dorothy");
 const KANBAN_FILE = path.join(DATA_DIR, "kanban-tasks.json");
+const AGENTS_FILE = path.join(DATA_DIR, "agents.json");
 
 // Types
 type KanbanColumn = "backlog" | "planned" | "ongoing" | "done";
@@ -62,6 +63,28 @@ function saveTasks(tasks: KanbanTask[]): void {
   fs.writeFileSync(KANBAN_FILE, JSON.stringify(tasks, null, 2));
 }
 
+/** Resolve agent ID to human-readable name from agents.json */
+function getAgentName(agentId: string | null): string | null {
+  if (!agentId) return null;
+  try {
+    if (!fs.existsSync(AGENTS_FILE)) return null;
+    const data = JSON.parse(fs.readFileSync(AGENTS_FILE, "utf-8"));
+    // agents.json stores an array of agent objects
+    if (Array.isArray(data)) {
+      const agent = data.find((a: { id?: string }) => a.id === agentId);
+      return agent?.name || null;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+/** Format agent display: "Name (id-prefix)" or just "id-prefix" */
+function formatAgent(agentId: string | null): string {
+  if (!agentId) return "None";
+  const name = getAgentName(agentId);
+  return name ? `${name} (${agentId.slice(0, 8)})` : agentId.slice(0, 8);
+}
+
 // Create MCP server
 const server = new McpServer({
   name: "claude-mgr-kanban",
@@ -92,7 +115,7 @@ server.tool(
       }
 
       const summary = tasks.map(t =>
-        `- [${t.id.slice(0, 8)}] ${t.title} (${t.column}, ${t.progress}%${t.assignedAgentId ? `, agent: ${t.assignedAgentId.slice(0, 8)}` : ""})`
+        `- [${t.id.slice(0, 8)}] ${t.title} (${t.column}, ${t.progress}%${t.assignedAgentId ? `, agent: ${formatAgent(t.assignedAgentId)}` : ""})`
       ).join("\n");
 
       return {
@@ -147,7 +170,7 @@ Progress: ${task.progress}%
 Priority: ${task.priority}
 Description: ${task.description}
 Project: ${task.projectPath}
-Assigned Agent: ${task.assignedAgentId || "None"}
+Assigned Agent: ${formatAgent(task.assignedAgentId)}
 Labels: ${task.labels.join(", ") || "None"}
 Created: ${task.createdAt}
 Updated: ${task.updatedAt}${task.completionSummary ? `\nCompletion Summary: ${task.completionSummary}` : ""}`,
@@ -467,7 +490,7 @@ server.tool(
         content: [{
           type: "text",
           text: assignedId
-            ? `Task "${task.title}" assigned to agent ${assignedId.slice(0, 8)}`
+            ? `Task "${task.title}" assigned to ${formatAgent(assignedId)}`
             : `Task "${task.title}" unassigned`,
         }],
       };

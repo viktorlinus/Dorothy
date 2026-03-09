@@ -19,6 +19,22 @@ function useIsMobile() {
   return isMobile;
 }
 
+/** Strip HTML tags and collapse whitespace so release notes render as plain text. */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(?:p|li|h[1-6]|div|tr)>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '- ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 interface UpdateInfo {
   currentVersion: string;
   latestVersion: string;
@@ -253,7 +269,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 <div className="mb-4">
                   <p className="text-xs font-medium text-muted-foreground mb-1">Release notes:</p>
                   <p className="text-sm text-foreground/80 whitespace-pre-wrap line-clamp-6">
-                    {updateInfo.releaseNotes.slice(0, 400)}
+                    {stripHtml(updateInfo.releaseNotes).slice(0, 400)}
                     {updateInfo.releaseNotes.length > 400 ? '...' : ''}
                   </p>
                 </div>

@@ -18,7 +18,7 @@ AGENT_ID="${CLAUDE_AGENT_ID:-$SESSION_ID}"
 PROJECT_PATH="${CLAUDE_PROJECT_PATH:-$CWD}"
 
 # Check if API is available
-if ! curl -s --connect-timeout 1 "$API_URL/api/memory/stats" > /dev/null 2>&1; then
+if ! curl -s --connect-timeout 1 "$API_URL/api/health" > /dev/null 2>&1; then
   # API not running, just continue
   echo '{"continue":true,"suppressOutput":true}'
   exit 0

@@ -69,25 +69,40 @@ export function registerAgentTools(server: McpServer): void {
     }
   );
 
-  // Tool: Get agent output
+  // Tool: Get agent output (clean text from transcript, no ANSI)
   server.tool(
     "get_agent_output",
-    "Get the recent terminal output from an agent. Useful for checking what an agent has done or is currently doing.",
+    "Get the agent's last response as clean text (no terminal formatting). This is captured from the agent's transcript by hooks. Falls back to noting output is available in terminal view if no clean output is captured yet.",
     {
       id: z.string().describe("The agent ID"),
-      lines: z.number().optional().describe("Number of lines to retrieve (default: 100)"),
     },
-    async ({ id, lines = 100 }) => {
+    async ({ id }) => {
       try {
-        const data = (await apiRequest(`/api/agents/${id}/output?lines=${lines}`)) as {
-          output: string;
-          status: string;
+        const data = (await apiRequest(`/api/agents/${id}`)) as {
+          agent: {
+            status: string;
+            name?: string;
+            lastCleanOutput?: string;
+          };
         };
+        const agentName = data.agent.name || id;
+
+        if (data.agent.lastCleanOutput) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Agent "${agentName}" (${data.agent.status}):\n\n${data.agent.lastCleanOutput}`,
+              },
+            ],
+          };
+        }
+
         return {
           content: [
             {
               type: "text",
-              text: `Agent status: ${data.status}\n\n--- Output ---\n${data.output}`,
+              text: `Agent "${agentName}" (${data.agent.status}): No clean output captured yet. The agent's terminal output is available in the Dorothy UI. Clean output is captured when the agent pauses or completes.`,
             },
           ],
         };
@@ -247,7 +262,7 @@ export function registerAgentTools(server: McpServer): void {
   // Tool: Send message to agent
   server.tool(
     "send_message",
-    "Send input/message to an agent. If the agent is idle, this will START the agent with the message as the prompt (with --dangerously-skip-permissions). If the agent is running/waiting, this sends the message as input.",
+    "Send input/message to an agent. If the agent is idle/completed/error, this will START the agent with the message as the prompt. If the agent is 'waiting', this sends the message as input. WARNING: Sending to a 'running' agent may interfere with its current work — prefer waiting until it reaches 'waiting' or 'completed' status.",
     {
       id: z.string().describe("The agent ID"),
       message: z.string().describe("The message to send to the agent"),
@@ -258,6 +273,7 @@ export function registerAgentTools(server: McpServer): void {
           agent: { status: string; name?: string };
         };
         const status = agentData.agent.status;
+        const agentName = agentData.agent.name || id;
 
         if (status === "idle" || status === "completed" || status === "error") {
           const startResult = (await apiRequest(`/api/agents/${id}/start`, "POST", {
@@ -268,7 +284,19 @@ export function registerAgentTools(server: McpServer): void {
             content: [
               {
                 type: "text",
-                text: `Agent ${agentData.agent.name || id} was ${status}, started it with prompt: "${message}". New status: ${startResult.agent.status}`,
+                text: `Agent "${agentName}" was ${status}, started it with prompt: "${message}". New status: ${startResult.agent.status}`,
+              },
+            ],
+          };
+        }
+
+        if (status === "running") {
+          await apiRequest(`/api/agents/${id}/message`, "POST", { message });
+          return {
+            content: [
+              {
+                type: "text",
+                text: `⚠️ Agent "${agentName}" is currently running. Message sent but may interfere with current work. Consider using wait_for_agent first to wait until the agent is done.\nMessage sent: "${message}"`,
               },
             ],
           };
@@ -279,7 +307,7 @@ export function registerAgentTools(server: McpServer): void {
           content: [
             {
               type: "text",
-              text: `Sent message to agent ${agentData.agent.name || id}: "${message}"`,
+              text: `Sent message to agent "${agentName}" (${status}): "${message}"`,
             },
           ],
         };
@@ -329,100 +357,87 @@ export function registerAgentTools(server: McpServer): void {
     }
   );
 
-  // Tool: Wait for agent completion
+  // Tool: Wait for agent completion (long-poll, no polling loop)
   server.tool(
     "wait_for_agent",
-    "Poll an agent's status until it completes, errors, or needs input. Returns immediately if agent is idle (use start_agent first) or waiting for input (use send_message).",
+    "Wait for an agent to finish its current task. Uses long-polling for efficient waiting — returns as soon as the agent's status changes (no 5-second polling delay). Returns immediately if agent is already idle/waiting/completed/error.",
     {
       id: z.string().describe("The agent ID"),
       timeoutSeconds: z.number().optional().describe("Maximum time to wait in seconds (default: 300)"),
-      pollIntervalSeconds: z.number().optional().describe("How often to check status in seconds (default: 5)"),
     },
-    async ({ id, timeoutSeconds = 300, pollIntervalSeconds = 5 }) => {
-      const startTime = Date.now();
-      const timeoutMs = timeoutSeconds * 1000;
-      const pollIntervalMs = pollIntervalSeconds * 1000;
-
+    async ({ id, timeoutSeconds = 300 }) => {
       try {
-        const initialData = (await apiRequest(`/api/agents/${id}`)) as {
-          agent: { status: string; error?: string; currentTask?: string; name?: string };
+        // Single long-poll request to the wait endpoint
+        const data = (await apiRequest(
+          `/api/agents/${id}/wait?timeout=${timeoutSeconds}`
+        )) as {
+          status: string;
+          lastCleanOutput?: string;
+          error?: string;
+          timeout?: boolean;
         };
-        const agentName = initialData.agent.name || id;
 
-        if (initialData.agent.status === "idle") {
+        const agentData = (await apiRequest(`/api/agents/${id}`)) as {
+          agent: { name?: string };
+        };
+        const agentName = agentData.agent.name || id;
+
+        if (data.timeout) {
           return {
             content: [
               {
                 type: "text",
-                text: `Agent "${agentName}" is idle and not running. Use start_agent or send_message to give it a task first.`,
+                text: `Timeout after ${timeoutSeconds}s. Agent "${agentName}" is still '${data.status}'. Use get_agent_output to check progress.`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        if (data.status === "completed" || data.status === "idle") {
+          const outputInfo = data.lastCleanOutput
+            ? `\n\nOutput:\n${data.lastCleanOutput}`
+            : "\n\nUse get_agent_output to read the result.";
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Agent "${agentName}" finished (${data.status}).${outputInfo}`,
               },
             ],
           };
         }
 
-        while (Date.now() - startTime < timeoutMs) {
-          const data = (await apiRequest(`/api/agents/${id}`)) as {
-            agent: { status: string; error?: string; currentTask?: string; name?: string };
+        if (data.status === "error") {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Agent "${agentName}" encountered an error: ${data.error || "Unknown error"}`,
+              },
+            ],
+            isError: true,
           };
-          const status = data.agent.status;
-
-          if (status === "completed") {
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: `Agent "${agentName}" completed successfully.`,
-                },
-              ],
-            };
-          }
-
-          if (status === "error") {
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: `Agent "${agentName}" encountered an error: ${data.agent.error || "Unknown error"}`,
-                },
-              ],
-              isError: true,
-            };
-          }
-
-          if (status === "idle") {
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: `Agent "${agentName}" finished and is now idle.`,
-                },
-              ],
-            };
-          }
-
-          if (status === "waiting") {
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: `Agent "${agentName}" is waiting for input. Use send_message to respond, or check get_agent_output to see what it's asking.`,
-                },
-              ],
-            };
-          }
-
-          await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
         }
 
-        const finalStatus = ((await apiRequest(`/api/agents/${id}`)) as { agent: { status: string } }).agent.status;
+        if (data.status === "waiting") {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Agent "${agentName}" is waiting for input. Use send_message to respond, or get_agent_output to see what it's asking.`,
+              },
+            ],
+          };
+        }
+
         return {
           content: [
             {
               type: "text",
-              text: `Timeout after ${timeoutSeconds}s. Agent "${agentName}" is still '${finalStatus}'. Check get_agent_output to see progress.`,
+              text: `Agent "${agentName}" status: ${data.status}`,
             },
           ],
-          isError: true,
         };
       } catch (error) {
         return {
@@ -430,6 +445,125 @@ export function registerAgentTools(server: McpServer): void {
             {
               type: "text",
               text: `Error waiting for agent: ${error instanceof Error ? error.message : String(error)}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  // Tool: Delegate task (composite: start + wait + get output)
+  server.tool(
+    "delegate_task",
+    "Delegate a task to an agent and wait for the result. This is the primary tool for task delegation — it starts the agent, waits for completion using long-polling, and returns the clean text result. Much more efficient than calling start_agent + wait_for_agent + get_agent_output separately.",
+    {
+      id: z.string().describe("The agent ID to delegate to"),
+      prompt: z.string().describe("The task/instruction for the agent"),
+      model: z.string().optional().describe("Optional model to use (e.g., 'sonnet', 'opus')"),
+      timeoutSeconds: z.number().optional().describe("Maximum time to wait in seconds (default: 300)"),
+    },
+    async ({ id, prompt, model, timeoutSeconds = 300 }) => {
+      try {
+        // Get agent info
+        const agentData = (await apiRequest(`/api/agents/${id}`)) as {
+          agent: { status: string; name?: string };
+        };
+        const agentName = agentData.agent.name || id;
+        const status = agentData.agent.status;
+
+        // Start or send message
+        if (status === "running" || status === "waiting") {
+          await apiRequest(`/api/agents/${id}/message`, "POST", { message: prompt });
+        } else {
+          await apiRequest(`/api/agents/${id}/start`, "POST", {
+            prompt,
+            model,
+            skipPermissions: true,
+          });
+        }
+
+        // Wait for completion via long-poll
+        const waitData = (await apiRequest(
+          `/api/agents/${id}/wait?timeout=${timeoutSeconds}`
+        )) as {
+          status: string;
+          lastCleanOutput?: string;
+          error?: string;
+          timeout?: boolean;
+        };
+
+        if (waitData.timeout) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Agent "${agentName}" is still running after ${timeoutSeconds}s. Use wait_for_agent to continue waiting, or get_agent_output to check progress.`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        if (waitData.status === "error") {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Agent "${agentName}" failed: ${waitData.error || "Unknown error"}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        if (waitData.status === "waiting") {
+          const outputInfo = waitData.lastCleanOutput
+            ? `\n\nAgent output:\n${waitData.lastCleanOutput}`
+            : "";
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Agent "${agentName}" is waiting for input.${outputInfo}\n\nUse send_message to respond.`,
+              },
+            ],
+          };
+        }
+
+        // Completed or idle — get the output
+        // Re-fetch to get latest lastCleanOutput (hooks may have updated it)
+        const finalAgent = (await apiRequest(`/api/agents/${id}`)) as {
+          agent: { lastCleanOutput?: string; status: string };
+        };
+
+        const output = finalAgent.agent.lastCleanOutput || waitData.lastCleanOutput;
+
+        if (output) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Agent "${agentName}" completed.\n\n${output}`,
+              },
+            ],
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Agent "${agentName}" completed (${waitData.status}). No clean output captured — check the agent's terminal in Dorothy UI for details.`,
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error delegating task: ${error instanceof Error ? error.message : String(error)}`,
             },
           ],
           isError: true,

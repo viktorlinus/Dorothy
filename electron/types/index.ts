@@ -26,6 +26,7 @@ export interface AgentStatus {
   skipPermissions?: boolean;
   currentSessionId?: string;
   kanbanTaskId?: string;  // For kanban task completion tracking
+  lastCleanOutput?: string;  // Clean text output captured from transcript by hooks
   provider?: AgentProvider;   // 'claude' (default) or 'local' (Tasmania)
   localModel?: string;        // Tasmania model name when provider is 'local'
   obsidianVaultPaths?: string[]; // Obsidian vault paths to mount via --add-dir (read-only)

@@ -196,6 +196,8 @@ export function useAgentTerminal({ selectedAgentId, terminalRef, provider, termi
                 term.write(line);
               });
             }
+            // Ensure terminal scrolls to bottom after replaying output
+            term.scrollToBottom();
           } else {
             term.writeln('\x1b[90m(No previous output)\x1b[0m');
           }
