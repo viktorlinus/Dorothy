@@ -125,6 +125,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('skill:list-installed-all'),
     linkToProvider: (params: { skillName: string; providerId: string }) =>
       ipcRenderer.invoke('skill:link-to-provider', params),
+    fetchMarketplace: () =>
+      ipcRenderer.invoke('skill:fetch-marketplace') as Promise<{ skills: Array<{ rank: number; name: string; repo: string; installs: string; installsNum: number }> | null }>,
     onPtyData: (callback: (event: { id: string; data: string }) => void) => {
       const listener = (_: unknown, event: { id: string; data: string }) => callback(event);
       ipcRenderer.on('skill:pty-data', listener);

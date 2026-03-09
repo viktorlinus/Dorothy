@@ -112,6 +112,34 @@ export const SKILLS_DATABASE: Skill[] = [
   { rank: 100, name: 'vue', repo: 'onmax/nuxt-skills', installs: '478', category: 'Frontend' },
 ];
 
+/**
+ * Fetch live skills from skills.sh.
+ * In Electron: uses IPC to fetch from the main process (avoids CORS).
+ * In dev/web: uses the Next.js API route.
+ * Returns null on failure so callers can fall back to SKILLS_DATABASE.
+ */
+export async function fetchSkillsFromMarketplace(): Promise<Skill[] | null> {
+  // Electron path: fetch via IPC (main process, no CORS)
+  if (typeof window !== 'undefined' && window.electronAPI?.skill?.fetchMarketplace) {
+    try {
+      const result = await window.electronAPI.skill.fetchMarketplace();
+      return result.skills;
+    } catch {
+      return null;
+    }
+  }
+
+  // Dev/web path: use the Next.js API route
+  try {
+    const res = await fetch('/api/skills/marketplace');
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.skills || null;
+  } catch {
+    return null;
+  }
+}
+
 // Get unique categories
 export const SKILL_CATEGORIES = [...new Set(SKILLS_DATABASE.map(s => s.category).filter((c): c is string => !!c))].sort();
 

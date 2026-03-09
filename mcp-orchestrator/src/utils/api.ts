@@ -29,20 +29,33 @@ export async function apiRequest(
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
+
+  // Long-poll wait endpoints need a longer timeout
+  const isLongPoll = endpoint.includes("/wait");
+  const timeoutMs = isLongPoll ? 600_000 : 30_000; // 10 min for long-poll, 30s default
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
   const options: RequestInit = {
     method,
     headers,
+    signal: controller.signal,
   };
   if (body) {
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(url, options);
-  const data = await response.json();
+  try {
+    const response = await fetch(url, options);
+    const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error((data as { error?: string }).error || `API error: ${response.status}`);
+    if (!response.ok) {
+      throw new Error((data as { error?: string }).error || `API error: ${response.status}`);
+    }
+
+    return data;
+  } finally {
+    clearTimeout(timer);
   }
-
-  return data;
 }

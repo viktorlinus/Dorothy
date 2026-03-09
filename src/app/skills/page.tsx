@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useClaude } from '@/hooks/useClaude';
 import { useElectronSkills } from '@/hooks/useElectron';
-import { SKILLS_DATABASE, type Skill } from '@/lib/skills-database';
+import { SKILLS_DATABASE, fetchSkillsFromMarketplace, type Skill } from '@/lib/skills-database';
 import TerminalDialog from '@/components/TerminalDialog';
 import ProviderBadge from '@/components/ProviderBadge';
 
@@ -54,12 +54,8 @@ export default function SkillsPage() {
   const [loadingSkills, setLoadingSkills] = useState(true);
 
   useEffect(() => {
-    fetch('/api/skills/marketplace')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data?.skills) setLiveSkills(data.skills);
-      })
-      .catch(() => { }) // fallback to hardcoded
+    fetchSkillsFromMarketplace()
+      .then(skills => { if (skills) setLiveSkills(skills); })
       .finally(() => setLoadingSkills(false));
   }, []);
 
