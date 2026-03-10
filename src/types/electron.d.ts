@@ -582,6 +582,22 @@ export interface ElectronAPI {
     }>;
   };
 
+  // Custom MCP server config
+  mcp?: {
+    list: (params: { provider: string }) => Promise<{
+      servers: Array<{ name: string; command: string; args: string[]; env: Record<string, string> }>;
+      error?: string;
+    }>;
+    update: (params: {
+      provider: string;
+      name: string;
+      command: string;
+      args: string[];
+      env: Record<string, string>;
+    }) => Promise<{ success: boolean; error?: string }>;
+    delete: (params: { provider: string; name: string }) => Promise<{ success: boolean; error?: string }>;
+  };
+
   // CLI paths management
   cliPaths?: {
     detect: () => Promise<{
@@ -775,6 +791,11 @@ export interface ElectronAPI {
   // API
   api?: {
     getToken: () => Promise<string>;
+  };
+
+  // Tray menu events
+  tray?: {
+    onFocusAgent: (callback: (agentId: string) => void) => () => void;
   };
 
   // Get home path helper

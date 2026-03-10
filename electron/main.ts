@@ -48,6 +48,8 @@ import {
   writeProgrammaticInput,
 } from './core/pty-manager';
 
+import { initTray, rebuildTrayMenu, destroyTray } from './core/tray-manager';
+
 // Services
 import { startApiServer } from './services/api-server';
 import {
@@ -207,6 +209,7 @@ function handleStatusChangeNotificationWrapper(agent: AgentStatus, newStatus: st
     (text: string) => sendTelegramMessage(text),
     sendSuperAgentResponseToTelegram
   );
+  rebuildTrayMenu();
 }
 
 // ============== IPC Handler Dependencies ==============
@@ -313,6 +316,10 @@ app.whenReady().then(async () => {
 
   // Set the main window reference in utils
   setUtilsMainWindow(getMainWindow());
+
+  // Initialize macOS menu bar tray with agent status panel
+  initTray();
+  setInterval(() => rebuildTrayMenu(), 10000);
 
   // Register all IPC handlers
   const deps = createIpcDependencies();
@@ -584,6 +591,7 @@ app.on('activate', () => {
 // Save agents and kill all PTY processes before quitting
 app.on('before-quit', () => {
   console.log('App quitting, saving agents and killing all PTY processes...');
+  destroyTray();
   saveAgents();
   killAllPty();
   closeVaultDb();

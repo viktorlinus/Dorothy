@@ -556,6 +556,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
   },
 
+  // Custom MCP server config
+  mcp: {
+    list: (params: { provider: string }) =>
+      ipcRenderer.invoke('mcp:list', params),
+    update: (params: { provider: string; name: string; command: string; args: string[]; env: Record<string, string> }) =>
+      ipcRenderer.invoke('mcp:update', params),
+    delete: (params: { provider: string; name: string }) =>
+      ipcRenderer.invoke('mcp:delete', params),
+  },
+
   // CLI Paths management
   cliPaths: {
     detect: () =>
@@ -627,6 +637,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // API
   api: {
     getToken: () => ipcRenderer.invoke('api:getToken') as Promise<string>,
+  },
+
+  // Tray menu events
+  tray: {
+    onFocusAgent: (callback: (agentId: string) => void) => {
+      const listener = (_: unknown, agentId: string) => callback(agentId);
+      ipcRenderer.on('tray:focus-agent', listener);
+      return () => ipcRenderer.removeListener('tray:focus-agent', listener);
+    },
   },
 
   // Platform info
