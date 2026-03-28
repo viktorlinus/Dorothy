@@ -62,4 +62,5 @@ export interface NewChatModalProps {
   onRefreshSkills?: () => void;
   initialProjectPath?: string;
   initialStep?: number;
+  initialOrchestrator?: boolean;
 }
