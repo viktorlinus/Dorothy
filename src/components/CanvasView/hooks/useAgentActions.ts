@@ -31,6 +31,7 @@ export function useAgentActions({
   const [isCreatingSuperAgent, setIsCreatingSuperAgent] = useState(false);
   const [showCreateAgentModal, setShowCreateAgentModal] = useState(false);
   const [createAgentProjectPath, setCreateAgentProjectPath] = useState<string | null>(null);
+  const [createSuperAgent, setCreateSuperAgent] = useState(false);
 
   const handleToggleAgent = useCallback(async (agentId: string, isRunning: boolean) => {
     if (isRunning) {
@@ -115,36 +116,22 @@ export function useAgentActions({
       }
     }
 
-    setIsCreatingSuperAgent(true);
-    try {
-      const projectPath = projects[0]?.path || '/tmp';
-
-      const agent = await createAgent({
-        projectPath,
-        skills: [],
-        character: 'wizard',
-        name: 'Super Agent (Orchestrator)',
-        skipPermissions: true,
-      });
-
-      await startAgent(agent.id, orchestratorPrompt);
-      setTerminalAgentId(agent.id);
-    } catch (error) {
-      console.error('Failed to create super agent:', error);
-    } finally {
-      setIsCreatingSuperAgent(false);
-    }
-  }, [superAgent, projects, createAgent, startAgent, setTerminalAgentId]);
+    // Open the create agent modal so the user can select a project
+    setShowCreateAgentModal(true);
+    setCreateSuperAgent(true);
+  }, [superAgent, startAgent, setTerminalAgentId]);
 
   const closeCreateAgentModal = useCallback(() => {
     setShowCreateAgentModal(false);
     setCreateAgentProjectPath(null);
+    setCreateSuperAgent(false);
   }, []);
 
   return {
     isCreatingSuperAgent,
     showCreateAgentModal,
     createAgentProjectPath,
+    createSuperAgent,
     handleToggleAgent,
     handleStartAgent,
     handleStopAgent,

@@ -89,6 +89,7 @@ export default function NewChatModal({
   onRefreshSkills,
   initialProjectPath,
   initialStep,
+  initialOrchestrator,
 }: NewChatModalProps) {
   const isEditMode = !!editAgent;
   // Step navigation
@@ -180,15 +181,23 @@ export default function NewChatModal({
         setPrompt('');
         setUseWorktree(false);
         setBranchName('');
-        agentPersonaRef.current = { character: 'robot', name: '' };
         setShowSecondaryProject(false);
         setSelectedSecondaryProject('');
         setCustomSecondaryPath('');
-        setSkipPermissions(false);
         setProvider('claude');
         setLocalModel('');
         setSelectedObsidianVaults([]);
         setDetectedVault(null);
+
+        if (initialOrchestrator) {
+          agentPersonaRef.current = { character: 'wizard', name: 'Super Agent (Orchestrator)' };
+          setSkipPermissions(true);
+          setIsOrchestrator(true);
+        } else {
+          agentPersonaRef.current = { character: 'robot', name: '' };
+          setSkipPermissions(false);
+          setIsOrchestrator(false);
+        }
       }
 
       // Load app settings (Tasmania, favorites, default project)
@@ -233,7 +242,7 @@ export default function NewChatModal({
         if (byProvider) setInstalledSkillsByProvider(byProvider);
       });
     }
-  }, [open, initialProjectPath, initialStep, editAgent]);
+  }, [open, initialProjectPath, initialStep, editAgent, initialOrchestrator]);
 
   // Clear selected skills when provider changes
   useEffect(() => {
