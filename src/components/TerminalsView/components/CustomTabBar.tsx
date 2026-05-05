@@ -7,7 +7,6 @@ import type { CustomTab, ActiveTab } from '../types';
 interface CustomTabBarProps {
   tabs: CustomTab[];
   activeTab: ActiveTab;
-  canCreateTab: boolean;
   onSelectTab: (tabId: string) => void;
   onCreateTab: (name: string) => void;
   onDeleteTab: (tabId: string) => void;
@@ -18,7 +17,6 @@ interface CustomTabBarProps {
 export default function CustomTabBar({
   tabs,
   activeTab,
-  canCreateTab,
   onSelectTab,
   onCreateTab,
   onDeleteTab,
@@ -181,50 +179,48 @@ export default function CustomTabBar({
       ))}
 
       {/* Create tab button + dialog */}
-      {canCreateTab && (
-        <div className="relative shrink-0">
-          <button
-            onClick={() => { setShowCreateDialog(true); setCreateName(''); }}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors"
-            title="Create new board (max 5)"
-          >
-            <Plus className="w-3.5 h-3.5" />
-          </button>
+      <div className="relative shrink-0">
+        <button
+          onClick={() => { setShowCreateDialog(true); setCreateName(''); }}
+          className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-colors"
+          title="Create new board"
+        >
+          <Plus className="w-3.5 h-3.5" />
+        </button>
 
-          {showCreateDialog && (
-            <div
-              ref={createDialogRef}
-              className="absolute top-full left-0 mt-1 bg-card border border-border shadow-xl z-50 p-3 min-w-[220px]"
-            >
-              <p className="text-xs text-muted-foreground mb-2">Board name</p>
-              <input
-                ref={createInputRef}
-                value={createName}
-                onChange={e => setCreateName(e.target.value)}
-                onKeyDown={handleCreateKeyDown}
-                placeholder="e.g. Frontend, Backend..."
-                className="w-full px-2 py-1.5 bg-secondary border border-border text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-white/30 mb-2"
-                maxLength={20}
-              />
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={() => { setShowCreateDialog(false); setCreateName(''); }}
-                  className="px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateSubmit}
-                  disabled={!createName.trim()}
-                  className="px-2.5 py-1 text-xs bg-foreground text-background font-medium hover:bg-foreground/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  Create
-                </button>
-              </div>
+        {showCreateDialog && (
+          <div
+            ref={createDialogRef}
+            className="absolute top-full left-0 mt-1 bg-card border border-border shadow-xl z-50 p-3 min-w-[220px]"
+          >
+            <p className="text-xs text-muted-foreground mb-2">Board name</p>
+            <input
+              ref={createInputRef}
+              value={createName}
+              onChange={e => setCreateName(e.target.value)}
+              onKeyDown={handleCreateKeyDown}
+              placeholder="e.g. Frontend, Backend..."
+              className="w-full px-2 py-1.5 bg-secondary border border-border text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-white/30 mb-2"
+              maxLength={20}
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => { setShowCreateDialog(false); setCreateName(''); }}
+                className="px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateSubmit}
+                disabled={!createName.trim()}
+                className="px-2.5 py-1 text-xs bg-foreground text-background font-medium hover:bg-foreground/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Create
+              </button>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
