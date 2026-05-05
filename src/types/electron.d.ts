@@ -153,6 +153,56 @@ export interface AgentStatus {
   localModel?: string;        // Tasmania model name when provider is 'local'
   savedPrompt?: string;       // Saved task/prompt for re-launching the agent
   obsidianVaultPaths?: string[]; // Obsidian vault paths to mount via --add-dir (read-only)
+  createdAt?: string;         // ISO timestamp when the agent was created
+}
+
+export interface AgentTemplate {
+  id: string;
+  builtin: boolean;
+  /** True if this built-in has been customized by the user. */
+  overridden?: boolean;
+  displayName: string;
+  description: string;
+  icon: string;
+  tags: string[];
+  character: AgentCharacter;
+  provider: AgentProvider;
+  model?: string;
+  localModel?: string;
+  permissionMode: 'normal' | 'auto' | 'bypass';
+  effort?: 'low' | 'medium' | 'high';
+  skills: string[];
+  obsidianVaultPaths?: string[];
+  savedPrompt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AgentTemplateInput {
+  displayName: string;
+  description?: string;
+  icon?: string;
+  tags?: string[];
+  character?: AgentCharacter;
+  provider?: AgentProvider;
+  model?: string;
+  localModel?: string;
+  permissionMode?: 'normal' | 'auto' | 'bypass';
+  effort?: 'low' | 'medium' | 'high';
+  skills?: string[];
+  obsidianVaultPaths?: string[];
+  savedPrompt?: string;
+}
+
+export interface AgentTemplatePatch extends Partial<AgentTemplateInput> {
+  id: string;
+}
+
+export interface TemplateExport {
+  version: number;
+  kind: 'dorothy.agent-template';
+  exportedAt: string;
+  templates: AgentTemplateInput[];
 }
 
 export interface PtyDataEvent {
@@ -789,6 +839,18 @@ export interface ElectronAPI {
     onTaskCreated: (callback: (task: KanbanTaskElectron) => void) => () => void;
     onTaskUpdated: (callback: (task: KanbanTaskElectron) => void) => () => void;
     onTaskDeleted: (callback: (event: { id: string }) => void) => () => void;
+  };
+
+  // Agent templates
+  template?: {
+    list: () => Promise<{ templates: AgentTemplate[]; error?: string }>;
+    get: (id: string) => Promise<{ template: AgentTemplate | null }>;
+    create: (input: AgentTemplateInput) => Promise<{ success: boolean; template?: AgentTemplate; error?: string }>;
+    update: (patch: AgentTemplatePatch) => Promise<{ success: boolean; template?: AgentTemplate; error?: string }>;
+    delete: (id: string) => Promise<{ success: boolean; error?: string }>;
+    duplicate: (id: string) => Promise<{ success: boolean; template?: AgentTemplate; error?: string }>;
+    export: (ids: string[]) => Promise<{ success: boolean; payload?: TemplateExport; error?: string }>;
+    import: (payload: unknown) => Promise<{ success: boolean; imported?: number; skipped?: number; errors?: string[]; templates?: AgentTemplate[]; error?: string }>;
   };
 
   // World (generative zones)

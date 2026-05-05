@@ -35,6 +35,7 @@ import { usePathname } from 'next/navigation';
 const navItems = [
   { href: '/', icon: LayoutDashboard, label: 'Dashboard', shortcut: '1' },
   { href: '/agents', icon: Bot, label: 'Agents', shortcut: '2' },
+  { href: '/templates', icon: Sparkles, label: 'Templates', shortcut: 'T' },
   { href: '/kanban', icon: Columns, label: 'Kanban', shortcut: '3' },
   { href: '/vault', icon: Archive, label: 'Vault', shortcut: '4' },
   { href: '/projects', icon: FolderKanban, label: 'Projects', shortcut: '5' },

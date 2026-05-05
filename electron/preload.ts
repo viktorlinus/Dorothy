@@ -482,6 +482,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
   },
 
+  // Agent templates
+  template: {
+    list: () =>
+      ipcRenderer.invoke('template:list'),
+    get: (id: string) =>
+      ipcRenderer.invoke('template:get', id),
+    create: (input: Record<string, unknown>) =>
+      ipcRenderer.invoke('template:create', input),
+    update: (patch: Record<string, unknown>) =>
+      ipcRenderer.invoke('template:update', patch),
+    delete: (id: string) =>
+      ipcRenderer.invoke('template:delete', id),
+    duplicate: (id: string) =>
+      ipcRenderer.invoke('template:duplicate', id),
+    export: (ids: string[]) =>
+      ipcRenderer.invoke('template:export', ids),
+    import: (payload: unknown) =>
+      ipcRenderer.invoke('template:import', payload),
+  },
+
   // Vault
   vault: {
     listDocuments: (params?: { folder_id?: string; tags?: string[] }) =>
