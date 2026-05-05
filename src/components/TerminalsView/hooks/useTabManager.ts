@@ -6,7 +6,6 @@ import { LAYOUT_PRESETS, getAutoLayout } from '../constants';
 import { deleteTabLayouts } from './useGridLayoutStorage';
 
 const STORAGE_KEY = 'terminals-tab-manager';
-const MAX_TABS = 6;
 
 interface TabManagerState {
   customTabs: CustomTab[];
@@ -87,7 +86,6 @@ export function useTabManager({ existingAgentIds, isLoading }: UseTabManagerOpti
 
   const createTab = useCallback((name: string) => {
     setState(prev => {
-      if (prev.customTabs.length >= MAX_TABS) return prev;
       const newTab: CustomTab = {
         id: crypto.randomUUID(),
         name: name || `Tab ${prev.customTabs.length + 1}`,
@@ -208,7 +206,6 @@ export function useTabManager({ existingAgentIds, isLoading }: UseTabManagerOpti
 
   const isCustomTabActive = state.activeTab.type === 'custom';
   const isProjectTabActive = state.activeTab.type === 'project';
-  const canCreateTab = state.customTabs.length < MAX_TABS;
 
   return {
     customTabs: state.customTabs,
@@ -225,6 +222,5 @@ export function useTabManager({ existingAgentIds, isLoading }: UseTabManagerOpti
     activeProjectPath,
     isCustomTabActive,
     isProjectTabActive,
-    canCreateTab,
   };
 }

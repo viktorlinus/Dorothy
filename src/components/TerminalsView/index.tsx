@@ -344,7 +344,6 @@ export default function TerminalsView() {
         <CustomTabBar
           tabs={tabManager.customTabs}
           activeTab={tabManager.activeTab}
-          canCreateTab={tabManager.canCreateTab}
           onSelectTab={(tabId) => tabManager.setActiveTab({ type: 'custom', tabId })}
           onCreateTab={tabManager.createTab}
           onDeleteTab={tabManager.deleteTab}
