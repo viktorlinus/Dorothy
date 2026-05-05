@@ -56,23 +56,28 @@ export function TemplateFormDialog({ initialTemplate, installedSkills, onClose, 
     }
     setError(null);
     setSubmitting(true);
-    const result = await onSubmit({
-      displayName: displayName.trim(),
-      description: description.trim(),
-      icon: icon.trim() || '🤖',
-      character,
-      provider,
-      model: initialModel,
-      permissionMode,
-      skills,
-      savedPrompt: savedPrompt.trim() || undefined,
-    });
-    if (!result.success) {
-      setError(result.error ?? 'Failed to save template');
+    try {
+      const result = await onSubmit({
+        displayName: displayName.trim(),
+        description: description.trim(),
+        icon: icon.trim() || '🤖',
+        character,
+        provider,
+        model: initialModel,
+        permissionMode,
+        skills,
+        savedPrompt: savedPrompt.trim() || undefined,
+      });
+      if (!result.success) {
+        setError(result.error ?? 'Failed to save template');
+        return;
+      }
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save template');
+    } finally {
       setSubmitting(false);
-      return;
     }
-    onClose();
   }
 
   const allSkills = Array.from(new Set([...installedSkills, ...skills])).sort();

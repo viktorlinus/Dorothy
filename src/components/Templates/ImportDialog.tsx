@@ -90,13 +90,18 @@ export function ImportDialog({ onClose, onImport }: ImportDialogProps) {
     if (!parsed) return;
     setSubmitting(true);
     setSubmitError(null);
-    const result = await onImport(parsed);
-    setSubmitting(false);
-    if (!result.success) {
-      setSubmitError(result.error ?? 'Import failed');
-      return;
+    try {
+      const result = await onImport(parsed);
+      if (!result.success) {
+        setSubmitError(result.error ?? 'Import failed');
+        return;
+      }
+      onClose();
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Import failed');
+    } finally {
+      setSubmitting(false);
     }
-    onClose();
   }
 
   return (
