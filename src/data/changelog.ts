@@ -7,6 +7,24 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: 11,
+    version: '1.2.8',
+    date: '2026-05-05',
+    updates: [
+      'Agent Templates — new sidebar page with 9 built-in role templates: Frontend Engineer, Backend Engineer, Security Engineer, Code Reviewer, Tester (QA), Refactor Specialist, Docs Writer, DevOps Engineer, Product Designer',
+      'Production-grade system prompts on every built-in template, grounded in patterns from Cursor, Cline, Roo Code, Anthropic Agent Skills, and the OpenAI Codex prompting guide',
+      'Built-in templates are editable — your edits are saved as overrides with a "Customized" badge and a one-click reset to defaults',
+      '"Use this template" → pick a project → agent created and auto-started with the template prompt; no extra setup',
+      '"Save as template" action on each agent card — turn any working agent into a reusable template',
+      'Clickable "+" badges on missing skills — install marketplace skills directly from a template card; the badge updates live when the install completes',
+      'Import / Export templates as .json files — share role packs with your team or back up your customizations',
+      'Agents list now sorts by creation time by default (newest first), so a freshly created agent appears at the top',
+      'Unlimited dashboard tabs — the previous 5-tab cap is gone; tabs scroll horizontally when they overflow',
+      'Ctrl+Tab / Ctrl+Shift+Tab to cycle through dashboard tabs, with focus auto-restored to the last active terminal in each tab — type straight into the agent without clicking',
+      'New blank template form simplified — no more model picker; uses the provider default',
+    ],
+  },
+  {
     id: 10,
     version: '1.2.7',
     date: '2026-03-28',

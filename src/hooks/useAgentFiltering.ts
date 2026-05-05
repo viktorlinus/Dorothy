@@ -7,7 +7,7 @@ interface UseAgentFilteringProps {
   projectFilter: string | null;
   statusFilter?: string | null;
   searchQuery?: string;
-  sortBy?: 'status' | 'activity' | 'name';
+  sortBy?: 'created' | 'status' | 'activity' | 'name';
 }
 
 interface UniqueProject {
@@ -15,7 +15,7 @@ interface UniqueProject {
   name: string;
 }
 
-export function useAgentFiltering({ agents, projectFilter, statusFilter, searchQuery, sortBy = 'status' }: UseAgentFilteringProps) {
+export function useAgentFiltering({ agents, projectFilter, statusFilter, searchQuery, sortBy = 'created' }: UseAgentFilteringProps) {
   const uniqueProjects = useMemo(() => {
     const projectSet = new Map<string, string>();
     agents.forEach((agent) => {
@@ -54,10 +54,15 @@ export function useAgentFiltering({ agents, projectFilter, statusFilter, searchQ
       if (sortBy === 'activity') {
         return new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime();
       }
-      // Default: status priority
-      const aPriority = getStatusPriority(a.status);
-      const bPriority = getStatusPriority(b.status);
-      return aPriority - bPriority;
+      if (sortBy === 'status') {
+        const aPriority = getStatusPriority(a.status);
+        const bPriority = getStatusPriority(b.status);
+        return aPriority - bPriority;
+      }
+      // Default: created (newest first); fall back to lastActivity for legacy agents missing createdAt
+      const aCreated = new Date(a.createdAt || a.lastActivity).getTime();
+      const bCreated = new Date(b.createdAt || b.lastActivity).getTime();
+      return bCreated - aCreated;
     });
   }, [agents, projectFilter, statusFilter, searchQuery, sortBy]);
 

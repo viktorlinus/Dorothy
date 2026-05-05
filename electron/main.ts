@@ -91,6 +91,7 @@ import { registerCLIPathsHandlers } from './handlers/cli-paths-handlers';
 import { registerKanbanHandlers } from './handlers/kanban-handlers';
 import { registerVaultHandlers } from './handlers/vault-handlers';
 import { registerWorldHandlers } from './handlers/world-handlers';
+import { registerTemplateHandlers } from './handlers/template-handlers';
 import { initVaultDb, closeVaultDb } from './services/vault-db';
 import { initAutoUpdater, checkForUpdates, setMainWindowGetter } from './services/update-checker';
 import { initKanbanAutomation, findMatchingAgent, createAgentForTask, startAgentForTask } from './services/kanban-automation';
@@ -357,6 +358,9 @@ app.whenReady().then(async () => {
     setAppSettings: (settings) => { appSettings = settings; },
     saveAppSettings: saveAppSettingsToFile,
   });
+
+  // Register agent template handlers (no deps — self-contained)
+  registerTemplateHandlers();
 
   // Register kanban handlers
   registerKanbanHandlers({

@@ -356,6 +356,7 @@ function registerAgentHandlers(deps: IpcHandlerDependencies): void {
       }
     }
 
+    const now = new Date().toISOString();
     const status: AgentStatus = {
       id,
       status: 'idle',
@@ -365,7 +366,8 @@ function registerAgentHandlers(deps: IpcHandlerDependencies): void {
       branchName,
       skills: config.skills,
       output: [],
-      lastActivity: new Date().toISOString(),
+      lastActivity: now,
+      createdAt: now,
       ptyId,
       character: config.character || 'robot',
       name: config.name || `Agent ${id.slice(0, 4)}`,

@@ -1,6 +1,6 @@
 'use client';
 
-import { Play, Square, Pencil, Trash2, AlertTriangle, Crown, Clock } from 'lucide-react';
+import { Play, Square, Pencil, Trash2, AlertTriangle, Crown, Clock, BookmarkPlus } from 'lucide-react';
 import type { AgentStatus } from '@/types/electron';
 import {
   STATUS_COLORS,
@@ -27,9 +27,10 @@ interface AgentManagementCardProps {
   onStart: () => void;
   onStop: () => void;
   onRemove: () => void;
+  onSaveAsTemplate?: () => void;
 }
 
-export function AgentManagementCard({ agent, onClick, onEdit, onStart, onStop, onRemove }: AgentManagementCardProps) {
+export function AgentManagementCard({ agent, onClick, onEdit, onStart, onStop, onRemove, onSaveAsTemplate }: AgentManagementCardProps) {
   const statusConfig = STATUS_COLORS[agent.status];
   const isSuper = isSuperAgentCheck(agent);
   const isRunning = agent.status === 'running' || agent.status === 'waiting';
@@ -144,6 +145,15 @@ export function AgentManagementCard({ agent, onClick, onEdit, onStart, onStop, o
           >
             <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
           </button>
+          {onSaveAsTemplate && (
+            <button
+              onClick={onSaveAsTemplate}
+              className="p-1.5 hover:bg-primary/10 rounded transition-colors"
+              title="Save as template"
+            >
+              <BookmarkPlus className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
+            </button>
+          )}
           <button
             onClick={onRemove}
             className="p-1.5 hover:bg-red-500/10 rounded transition-colors"

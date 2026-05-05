@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Bot, Loader2, Search, ArrowUpDown } from 'lucide-react';
 import { useElectronAgents, useElectronFS, useElectronSkills, isElectron } from '@/hooks/useElectron';
+import { useElectronTemplates } from '@/hooks/useElectronTemplates';
 import { useClaude } from '@/hooks/useClaude';
 import { useAgentFiltering } from '@/hooks/useAgentFiltering';
 import { useSuperAgent } from '@/hooks/useSuperAgent';
@@ -18,7 +19,7 @@ import {
 } from '@/components/AgentList';
 import { STATUS_LABELS, STATUS_COLORS } from './constants';
 
-type SortBy = 'status' | 'activity' | 'name';
+type SortBy = 'created' | 'status' | 'activity' | 'name';
 
 export default function AgentsPage() {
   const {
@@ -33,6 +34,7 @@ export default function AgentsPage() {
   } = useElectronAgents();
   const { projects, openFolderDialog } = useElectronFS();
   const { installedSkills, refresh: refreshSkills } = useElectronSkills();
+  const { create: createTemplate } = useElectronTemplates();
   const { data: claudeData } = useClaude();
 
   // Local state
@@ -43,7 +45,7 @@ export default function AgentsPage() {
   const [projectFilter, setProjectFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortBy>('status');
+  const [sortBy, setSortBy] = useState<SortBy>('created');
 
 
   // Custom hooks
@@ -146,15 +148,41 @@ export default function AgentsPage() {
     removeAgent(agentId);
   }, [removeAgent]);
 
+  const handleSaveAsTemplate = useCallback(async (agentId: string) => {
+    const agent = agents.find(a => a.id === agentId);
+    if (!agent) return;
+    const suggested = agent.name?.trim() || `Agent ${agent.id.slice(0, 4)}`;
+    const name = window.prompt('Save as template — name?', suggested);
+    if (!name?.trim()) return;
+    const result = await createTemplate({
+      displayName: name.trim(),
+      description: `Saved from agent "${agent.name ?? ''}"`.trim(),
+      icon: '📦',
+      character: agent.character,
+      provider: agent.provider,
+      model: agent.model,
+      localModel: agent.localModel,
+      permissionMode: agent.permissionMode ?? (agent.skipPermissions ? 'auto' : 'normal'),
+      effort: agent.effort,
+      skills: agent.skills,
+      obsidianVaultPaths: agent.obsidianVaultPaths,
+      savedPrompt: agent.savedPrompt,
+    });
+    if (!result.success) {
+      alert(`Could not save template: ${result.error ?? 'unknown error'}`);
+    }
+  }, [agents, createTemplate]);
+
   const agentCountByProject = useCallback((path: string) => {
     return agents.filter(a => a.projectPath === path).length;
   }, [agents]);
 
   const cycleSortBy = useCallback(() => {
     setSortBy(prev => {
+      if (prev === 'created') return 'status';
       if (prev === 'status') return 'activity';
       if (prev === 'activity') return 'name';
-      return 'status';
+      return 'created';
     });
   }, []);
 
@@ -270,6 +298,7 @@ export default function AgentsPage() {
                 onStart={() => handleStartAgent(agent.id)}
                 onStop={() => stopAgent(agent.id)}
                 onRemove={() => handleRemoveAgent(agent.id)}
+                onSaveAsTemplate={() => handleSaveAsTemplate(agent.id)}
               />
             ))}
           </div>

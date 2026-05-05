@@ -217,6 +217,11 @@ export function loadAgents() {
         agent.permissionMode = agent.skipPermissions ? 'auto' : 'normal';
       }
 
+      // Backfill createdAt for legacy agents using lastActivity
+      if (!agent.createdAt) {
+        agent.createdAt = agent.lastActivity || new Date().toISOString();
+      }
+
       agents.set(agent.id, agent);
     }
 

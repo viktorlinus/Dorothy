@@ -50,6 +50,7 @@ export interface AgentStatus {
   localModel?: string;        // Tasmania model name when provider is 'local'
   savedPrompt?: string;       // Saved task/prompt for re-launching the agent
   obsidianVaultPaths?: string[]; // Obsidian vault paths to mount via --add-dir (read-only)
+  createdAt?: string;         // ISO timestamp when the agent was created
 }
 
 export interface CLIPaths {
