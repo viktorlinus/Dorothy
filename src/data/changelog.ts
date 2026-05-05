@@ -20,6 +20,7 @@ export const CHANGELOG: Release[] = [
       'Import / Export templates as .json files — share role packs with your team or back up your customizations',
       'Agents list now sorts by creation time by default (newest first), so a freshly created agent appears at the top',
       'Unlimited dashboard tabs — the previous 5-tab cap is gone; tabs scroll horizontally when they overflow',
+      'Ctrl+Tab / Ctrl+Shift+Tab to cycle through dashboard tabs, with focus auto-restored to the last active terminal in each tab — type straight into the agent without clicking',
       'New blank template form simplified — no more model picker; uses the provider default',
     ],
   },
