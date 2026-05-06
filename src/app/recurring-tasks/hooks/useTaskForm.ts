@@ -18,6 +18,7 @@ const INITIAL_FORM = {
   useWorktree: false,
   notifyTelegram: false,
   notifySlack: false,
+  notifyDiscord: false,
 };
 
 export function useTaskForm(
@@ -83,6 +84,7 @@ export function useTaskForm(
         notifications: {
           telegram: formData.notifyTelegram,
           slack: formData.notifySlack,
+          discord: formData.notifyDiscord,
         },
       });
 

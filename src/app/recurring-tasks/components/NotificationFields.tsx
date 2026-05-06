@@ -1,4 +1,4 @@
-import { Send } from 'lucide-react';
+import { Send, Webhook } from 'lucide-react';
 import { SlackIcon } from '@/components/Settings/SlackIcon';
 
 interface NotificationFieldsProps {
@@ -6,6 +6,8 @@ interface NotificationFieldsProps {
   onTelegramChange: (value: boolean) => void;
   notifySlack: boolean;
   onSlackChange: (value: boolean) => void;
+  notifyDiscord: boolean;
+  onDiscordChange: (value: boolean) => void;
 }
 
 export function NotificationFields({
@@ -13,6 +15,8 @@ export function NotificationFields({
   onTelegramChange,
   notifySlack,
   onSlackChange,
+  notifyDiscord,
+  onDiscordChange,
 }: NotificationFieldsProps) {
   return (
     <div className="border-t border-border pt-4">
@@ -38,6 +42,17 @@ export function NotificationFields({
           />
           <SlackIcon className="w-4 h-4 text-purple-400" />
           <span className="text-sm">Slack</span>
+        </label>
+
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={notifyDiscord}
+            onChange={(e) => onDiscordChange(e.target.checked)}
+            className="w-4 h-4 rounded border-border"
+          />
+          <Webhook className="w-4 h-4 text-indigo-400" />
+          <span className="text-sm">Discord</span>
         </label>
       </div>
     </div>

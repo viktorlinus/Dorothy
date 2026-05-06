@@ -360,7 +360,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       projectPath: string;
       autonomous: boolean;
       useWorktree?: boolean;
-      notifications?: { telegram: boolean; slack: boolean };
+      notifications?: { telegram: boolean; slack: boolean; discord?: boolean };
     }) =>
       ipcRenderer.invoke('scheduler:createTask', params),
     deleteTask: (taskId: string) =>
@@ -370,7 +370,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       schedule?: string;
       projectPath?: string;
       autonomous?: boolean;
-      notifications?: { telegram: boolean; slack: boolean };
+      notifications?: { telegram: boolean; slack: boolean; discord?: boolean };
     }) =>
       ipcRenderer.invoke('scheduler:updateTask', taskId, updates),
     runTask: (taskId: string) =>

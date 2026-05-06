@@ -20,6 +20,7 @@ import {
   Brain,
   Gift,
   Heart,
+  MessageSquare,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { LATEST_RELEASE, WHATS_NEW_STORAGE_KEY } from '@/data/changelog';
@@ -39,6 +40,7 @@ const navItems = [
   { href: '/kanban', icon: Columns, label: 'Kanban', shortcut: '3' },
   { href: '/vault', icon: Archive, label: 'Vault', shortcut: '4' },
   { href: '/projects', icon: FolderKanban, label: 'Projects', shortcut: '5' },
+  { href: '/sessions', icon: MessageSquare, label: 'Sessions', shortcut: 'S' },
   { href: '/skills', icon: Sparkles, label: 'Skills', shortcut: '6' },
   { href: '/plugins', icon: Puzzle, label: 'Plugins', shortcut: '7' },
   { href: '/recurring-tasks', icon: CalendarClock, label: 'Scheduled Tasks', shortcut: '8' },

@@ -20,6 +20,7 @@ interface EditTaskModalProps {
     autonomous: boolean;
     notifyTelegram: boolean;
     notifySlack: boolean;
+    notifyDiscord: boolean;
   };
   onFormChange: (data: EditTaskModalProps['editForm']) => void;
   isSaving: boolean;
@@ -120,6 +121,8 @@ export function EditTaskModal({
                 onTelegramChange={(v) => onFormChange({ ...editForm, notifyTelegram: v })}
                 notifySlack={editForm.notifySlack}
                 onSlackChange={(v) => onFormChange({ ...editForm, notifySlack: v })}
+                notifyDiscord={editForm.notifyDiscord}
+                onDiscordChange={(v) => onFormChange({ ...editForm, notifyDiscord: v })}
               />
             </div>
 

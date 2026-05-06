@@ -15,6 +15,7 @@ const INITIAL_EDIT = {
   autonomous: true,
   notifyTelegram: false,
   notifySlack: false,
+  notifyDiscord: false,
 };
 
 export function useEditForm(
@@ -72,6 +73,7 @@ export function useEditForm(
       autonomous: task.autonomous,
       notifyTelegram: task.notifications.telegram,
       notifySlack: task.notifications.slack,
+      notifyDiscord: task.notifications.discord ?? false,
     });
   };
 
@@ -93,7 +95,7 @@ export function useEditForm(
         schedule?: string;
         projectPath?: string;
         autonomous?: boolean;
-        notifications?: { telegram: boolean; slack: boolean };
+        notifications?: { telegram: boolean; slack: boolean; discord: boolean };
       } = {};
 
       if (editForm.title !== (editingTask.title || '')) updates.title = editForm.title;
@@ -102,8 +104,9 @@ export function useEditForm(
       if (editForm.projectPath !== editingTask.projectPath) updates.projectPath = editForm.projectPath;
       if (editForm.autonomous !== editingTask.autonomous) updates.autonomous = editForm.autonomous;
       if (editForm.notifyTelegram !== editingTask.notifications.telegram ||
-          editForm.notifySlack !== editingTask.notifications.slack) {
-        updates.notifications = { telegram: editForm.notifyTelegram, slack: editForm.notifySlack };
+          editForm.notifySlack !== editingTask.notifications.slack ||
+          editForm.notifyDiscord !== (editingTask.notifications.discord ?? false)) {
+        updates.notifications = { telegram: editForm.notifyTelegram, slack: editForm.notifySlack, discord: editForm.notifyDiscord };
       }
 
       if (Object.keys(updates).length === 0) {

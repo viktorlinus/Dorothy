@@ -24,6 +24,7 @@ interface CreateTaskModalProps {
     useWorktree: boolean;
     notifyTelegram: boolean;
     notifySlack: boolean;
+    notifyDiscord: boolean;
   };
   onFormChange: (data: CreateTaskModalProps['formData']) => void;
   isCreating: boolean;
@@ -160,6 +161,8 @@ export function CreateTaskModal({
                 onTelegramChange={(v) => onFormChange({ ...formData, notifyTelegram: v })}
                 notifySlack={formData.notifySlack}
                 onSlackChange={(v) => onFormChange({ ...formData, notifySlack: v })}
+                notifyDiscord={formData.notifyDiscord}
+                onDiscordChange={(v) => onFormChange({ ...formData, notifyDiscord: v })}
               />
 
               {createError && (

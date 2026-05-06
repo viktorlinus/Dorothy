@@ -27,9 +27,17 @@ function parseLogContent(selectedLogs: SelectedLogs): string {
         return parts.length ? parts.join(' ') + '\n' : null;
       }
       if (obj.type === 'user' && obj.tool_use_result) {
-        const result = Array.isArray(obj.tool_use_result)
-          ? obj.tool_use_result.map((r: { text?: string }) => r.text || '').join('')
-          : String(obj.tool_use_result);
+        if (Array.isArray(obj.tool_use_result)) {
+          const result = obj.tool_use_result.map((r: { text?: string; type?: string; tool_name?: string }) => {
+            if (r.type === 'tool_reference') return `[${r.tool_name}]`;
+            return r.text || '';
+          }).join(' ');
+          return result + '\n';
+        }
+        if (typeof obj.tool_use_result === 'object') {
+          return JSON.stringify(obj.tool_use_result, null, 2) + '\n';
+        }
+        const result = String(obj.tool_use_result);
         if (result.startsWith('{') || result.startsWith('[')) {
           try { return JSON.stringify(JSON.parse(result), null, 2) + '\n'; } catch { return result + '\n'; }
         }

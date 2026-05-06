@@ -1,4 +1,4 @@
-import { Bell, BellOff, Music, X } from 'lucide-react';
+import { Bell, BellOff, Music, X, Webhook } from 'lucide-react';
 import { Toggle } from './Toggle';
 import type { AppSettings } from './types';
 
@@ -164,6 +164,28 @@ export const NotificationsSection = ({ appSettings, onSaveAppSettings }: Notific
             </div>
             <SoundPicker label="Sound" soundKey="error" appSettings={appSettings} onSaveAppSettings={onSaveAppSettings} />
           </div>
+        </div>
+      </div>
+      <div className="border border-border bg-card p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <Webhook className="w-5 h-5 text-indigo-400" />
+          <div>
+            <p className="font-medium">Discord Webhook</p>
+            <p className="text-sm text-muted-foreground">Post scheduled task results to a Discord channel</p>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Webhook URL</label>
+          <input
+            type="text"
+            value={appSettings.discordWebhookUrl || ''}
+            onChange={e => onSaveAppSettings({ discordWebhookUrl: e.target.value })}
+            placeholder="https://discord.com/api/webhooks/..."
+            className="w-full px-3 py-2 text-sm bg-secondary border border-border rounded-lg font-mono"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Enable &ldquo;Discord&rdquo; on individual scheduled tasks to send results here when they complete.
+          </p>
         </div>
       </div>
     </div>

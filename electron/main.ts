@@ -151,6 +151,7 @@ function loadAppSettings(): AppSettings {
     opencodeEnabled: false,
     opencodeDefaultModel: '',
     defaultProvider: 'claude',
+    discordWebhookUrl: '',
     cliPaths: {
       claude: '',
       codex: '',

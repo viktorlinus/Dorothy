@@ -89,6 +89,7 @@ export interface AppSettings {
   favoriteProjects?: string[];
   hiddenProjects?: string[];
   defaultProjectPath?: string;
+  discordWebhookUrl?: string;
 }
 
 export type SettingsSection = 'general' | 'terminal' | 'git' | 'notifications' | 'telegram' | 'slack' | 'jira' | 'socialdata' | 'tasmania' | 'opencode' | 'pi' | 'google-workspace' | 'obsidian' | 'permissions' | 'skills' | 'mcp' | 'cli' | 'system';

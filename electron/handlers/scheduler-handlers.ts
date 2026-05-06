@@ -64,6 +64,7 @@ interface SchedulerTaskMetadata {
   notifications: {
     telegram: boolean;
     slack: boolean;
+    discord: boolean;
   };
   createdAt: string;
   lastRunStatus?: 'success' | 'error' | 'running' | 'partial';
@@ -532,7 +533,7 @@ export function registerSchedulerHandlers(deps: SchedulerDeps): void {
         agentName?: string;
         autonomous: boolean;
         worktree?: { enabled: boolean; branchPrefix?: string };
-        notifications: { telegram: boolean; slack: boolean };
+        notifications: { telegram: boolean; slack: boolean; discord: boolean };
         createdAt: string;
         lastRun?: string;
         lastRunStatus?: 'success' | 'error' | 'running' | 'partial';
@@ -550,7 +551,7 @@ export function registerSchedulerHandlers(deps: SchedulerDeps): void {
           if (Array.isArray(schedules)) {
             for (const schedule of schedules) {
               const taskMeta = metadata[schedule.id] || {
-                notifications: { telegram: false, slack: false },
+                notifications: { telegram: false, slack: false, discord: false },
                 createdAt: new Date().toISOString(),
               };
 
@@ -608,7 +609,7 @@ export function registerSchedulerHandlers(deps: SchedulerDeps): void {
                     if (addedTaskIds.has(schedule.id)) continue;
 
                     const taskMeta = metadata[schedule.id] || {
-                      notifications: { telegram: false, slack: false },
+                      notifications: { telegram: false, slack: false, discord: false },
                       createdAt: new Date().toISOString(),
                     };
 
@@ -765,7 +766,7 @@ export function registerSchedulerHandlers(deps: SchedulerDeps): void {
 
                 const plistStat = fs.statSync(plistPath);
                 const taskMeta = metadata[taskId] || {
-                  notifications: { telegram: prompt.toLowerCase().includes('telegram'), slack: prompt.toLowerCase().includes('slack') },
+                  notifications: { telegram: prompt.toLowerCase().includes('telegram'), slack: prompt.toLowerCase().includes('slack'), discord: false },
                   createdAt: plistStat.birthtime.toISOString(),
                 };
 
@@ -820,7 +821,7 @@ export function registerSchedulerHandlers(deps: SchedulerDeps): void {
     agentName?: string;
     autonomous?: boolean;
     worktree?: { enabled: boolean; branchPrefix?: string };
-    notifications?: { telegram: boolean; slack: boolean };
+    notifications?: { telegram: boolean; slack: boolean; discord: boolean };
   }) => {
     try {
       const taskId = uuidv4();
@@ -866,7 +867,7 @@ export function registerSchedulerHandlers(deps: SchedulerDeps): void {
         agentId: config.agentId,
         agentName: config.agentName,
         provider: taskProvider,
-        notifications: config.notifications || { telegram: false, slack: false },
+        notifications: config.notifications || { telegram: false, slack: false, discord: false },
         createdAt: new Date().toISOString(),
       };
       saveSchedulerMetadata(metadata);
@@ -971,7 +972,7 @@ export function registerSchedulerHandlers(deps: SchedulerDeps): void {
     schedule?: string;
     projectPath?: string;
     autonomous?: boolean;
-    notifications?: { telegram: boolean; slack: boolean };
+    notifications?: { telegram: boolean; slack: boolean; discord: boolean };
   }) => {
     try {
       // Update schedules.json

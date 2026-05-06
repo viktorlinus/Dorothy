@@ -118,4 +118,5 @@ export interface AppSettings {
   favoriteProjects?: string[];
   hiddenProjects?: string[];
   defaultProjectPath?: string;
+  discordWebhookUrl?: string;
 }

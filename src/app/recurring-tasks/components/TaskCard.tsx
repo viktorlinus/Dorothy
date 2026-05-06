@@ -10,6 +10,7 @@ import {
   Pencil,
   Trash2,
   Loader2,
+  Webhook,
 } from 'lucide-react';
 import { SlackIcon } from '@/components/Settings/SlackIcon';
 import type { ScheduledTask } from '../types';
@@ -133,6 +134,13 @@ export function TaskCard({
               <div className="flex items-center gap-1 text-purple-400">
                 <SlackIcon className="w-3 h-3" />
                 Slack
+              </div>
+            )}
+
+            {task.notifications.discord && (
+              <div className="flex items-center gap-1 text-indigo-400">
+                <Webhook className="w-3 h-3" />
+                Discord
               </div>
             )}
 

@@ -15,6 +15,7 @@ export interface ScheduledTask {
   notifications: {
     telegram: boolean;
     slack: boolean;
+    discord?: boolean;
   };
   createdAt: string;
   lastRun?: string;

@@ -602,6 +602,7 @@ export interface ElectronAPI {
         notifications: {
           telegram: boolean;
           slack: boolean;
+          discord?: boolean;
         };
         createdAt: string;
         lastRun?: string;
@@ -620,6 +621,7 @@ export interface ElectronAPI {
       notifications?: {
         telegram: boolean;
         slack: boolean;
+        discord?: boolean;
       };
     }) => Promise<{ success: boolean; error?: string; taskId?: string }>;
     deleteTask: (taskId: string) => Promise<{ success: boolean; error?: string }>;
@@ -629,7 +631,7 @@ export interface ElectronAPI {
       schedule?: string;
       projectPath?: string;
       autonomous?: boolean;
-      notifications?: { telegram: boolean; slack: boolean };
+      notifications?: { telegram: boolean; slack: boolean; discord?: boolean };
     }) => Promise<{ success: boolean; error?: string }>;
     runTask: (taskId: string) => Promise<{ success: boolean; error?: string }>;
     getLogs: (taskId: string) => Promise<{
